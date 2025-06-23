@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tournament Organizer</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
+        .alert-success { color: #3c763d; background-color: #dff0d8; border-color: #d6e9c6; }
+        .alert-danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
+        .alert-info { color: #31708f; background-color: #d9edf7; border-color: #bce8f1; }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h1>Welcome to the Tournament Organizer!</h1>
+    <p><a href="{{ url_for('create_tournament') }}">Create New Tournament</a></p>
+    
+    <h2>Existing Tournaments:</h2>
+    {% if tournaments %}
+        <ul>
+        {% for tournament in tournaments %}
+            <li>{{ tournament.name }} ({{ tournament.sport }} - {{ tournament.format }})</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No tournaments created yet.</p>
+    {% endif %}
+
+    <p>More features coming soon.</p>
+</body>
+</html>
