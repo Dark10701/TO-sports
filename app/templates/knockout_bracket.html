@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Knockout Bracket - {{ tournament.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .bracket-round {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #eee;
+            background-color: #f9f9f9;
+        }
+        .bracket-match {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-left: 2px solid #ccc;
+        }
+        .bracket-match strong { /* Winner */
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h1>Knockout Bracket: {{ tournament.name }}</h1>
+
+    {% if can_advance_round %}
+    <div style="margin-bottom: 20px;">
+        <form method="POST" action="{{ url_for('advance_knockout_round', tournament_id=tournament.id) }}">
+            {# Optionally, pass current_max_round if needed by the route and not recalculated #}
+            {# <input type="hidden" name="current_round" value="{{ current_max_round }}"> #}
+            <button type="submit">Advance to Next Round (Round {{ current_max_round + 1 }})</button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if rounds_data %}
+        {% for round_number, matches_in_round in rounds_data.items()|sort %}
+            <div class="bracket-round">
+                <h3>Round {{ round_number }}</h3>
+                <ul>
+                    {% for match in matches_in_round %}
+                        <li class="bracket-match">
+                            Match {{ match.match_number_in_round }}: 
+                            {{ match.team1_name }} 
+                            vs 
+                            {{ match.team2_name if match.team2_name else 'BYE' }}
+                            
+                            {% if match.status == 'Completed' %}
+                                (Score: {{ match.score1 if match.score1 is not none else '-' }} - {{ match.score2 if match.score2 is not none else '-' }})
+                                - Winner: 
+                                {% if match.winner_name %}
+                                    <strong>{{ match.winner_name }}</strong>
+                                {% elif not match.team2_name %} {# Bye match completed #}
+                                    <strong>{{ match.team1_name }}</strong> (Bye)
+                                {% else %} 
+                                    Draw/TBD 
+                                {% endif %}
+                            {% else %}
+                                (Status: {{ match.status }})
+                            {% endif %}
+                             - <a href="{{ url_for('match_details', match_id=match.id) }}">Details</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No fixtures found or generated for this knockout tournament yet.</p>
+    {% endif %}
+
+    <p style="margin-top: 20px;">
+        <a href="{{ url_for('view_tournament', tournament_id=tournament.id) }}">Back to Tournament View</a> |
+        <a href="{{ url_for('index') }}">Back to Dashboard</a>
+    </p>
+
+</body>
+</html>
+

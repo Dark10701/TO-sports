@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Match Details - {{ tournament_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if match %}
+        <h1>Match Details</h1>
+        <p><strong>Tournament:</strong> <a href="{{ url_for('view_tournament', tournament_id=match.tournament_id) }}">{{ tournament_name }}</a></p>
+        <p><strong>Round:</strong> {{ match.round_number }} | <strong>Match:</strong> {{ match.match_number_in_round }}</p>
+        
+        <hr>
+
+        <h2>{{ match.team1_name }} vs {{ match.team2_name if match.team2_name else 'BYE' }}</h2>
+        
+        <p><strong>Status:</strong> {{ match.status }}</p>
+        <p><strong>Score:</strong> 
+            {{ match.score1 if match.score1 is not none else '-' }} : 
+            {{ match.score2 if match.score2 is not none else '-' }}
+        </p>
+        <p><strong>Winner:</strong> 
+            {% if match.winner_name %}
+                {{ match.winner_name }}
+            {% elif match.status == 'Completed' and match.team2_name %} {# team2_name check ensures not a bye #}
+                Draw 
+            {% elif not match.team2_name and (match.status == 'Completed' or match.status == 'Scheduled') %} {# Handles completed or scheduled bye #}
+                {{ match.team1_name }} (Bye)
+            {% else %}
+                -
+            {% endif %}
+        </p>
+
+        <hr style="margin-top: 20px; margin-bottom: 20px;">
+
+        {# Score update form #}
+        {% if match.status == 'Scheduled' or match.status == 'Ongoing' %} {# Or any other condition where scores can be updated #}
+            <h3 style="margin-top: 30px;">Update Score</h3>
+            <form method="POST" action="{{ url_for('match_details', match_id=match.id) }}">
+                <div style="margin-bottom: 10px;">
+                    <label for="score1">{{ match.team1_name }}:</label>
+                    <input type="number" id="score1" name="score1" value="{{ match.score1 if match.score1 is not none else '' }}" min="0" style="width: 60px; padding: 5px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="score2">{{ match.team2_name if match.team2_name else 'BYE Score (if applicable)' }}:</label>
+                    {% if match.team2_name %}
+                    <input type="number" id="score2" name="score2" value="{{ match.score2 if match.score2 is not none else '' }}" min="0" style="width: 60px; padding: 5px;">
+                    {% else %}
+                    <input type="number" id="score2" name="score2" value="{{ match.score2 if match.score2 is not none else '' }}" min="0" style="width: 60px; padding: 5px;" disabled>
+                    <span>(BYE)</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <button type="submit">Update Score & Status</button>
+                </div>
+            </form>
+        {% else %}
+            <p style="margin-top: 30px;"><em>Scores cannot be updated for matches with status '{{ match.status }}'.</em></p>
+        {% endif %}
+        
+        <p style="margin-top: 30px;">
+            <a href="{{ url_for('view_tournament', tournament_id=match.tournament_id) }}">Back to Tournament View</a> | 
+            <a href="{{ url_for('index') }}">Back to Dashboard</a>
+        </p>
+
+    {% else %}
+        {# This case should ideally be handled by redirect in the route if match not found #}
+        <h1>Match Not Found</h1>
+        <p>The requested match details could not be loaded.</p>
+        <p><a href="{{ url_for('index') }}">Back to Dashboard</a></p>
+    {% endif %}
+</body>
+</html>
+

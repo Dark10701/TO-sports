@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Tournament - {{ tournament_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h1>Tournament: {{ tournament_name }}</h1>
+
+    {% if tournament %}
+        <p><strong>ID:</strong> {{ tournament.id }}</p>
+        <p><strong>Sport:</strong> {{ tournament.sport }}</p>
+        <p><strong>Format:</strong> {{ tournament.format }}</p>
+        <p><strong>Created At:</strong> {{ tournament.created_at_formatted }}</p>
+
+        {% if tournament.format == 'league' %}
+        <p style="margin-top:10px;"><a href="{{ url_for('league_standings', tournament_id=tournament.id) }}">View Standings</a></p>
+        {% elif tournament.format == 'knockout' %}
+        <p style="margin-top:10px;"><a href="{{ url_for('knockout_bracket', tournament_id=tournament.id) }}">View Bracket</a></p>
+        {% endif %}
+        
+        <hr>
+        <h2>Fixtures</h2>
+        {# Fixture list will go here in a later step #}
+        {% if not fixtures_generated_yet %} {# This variable needs to be passed from the route #}
+            <form method="POST" action="{{ url_for('generate_fixtures_route', tournament_id=tournament.id) }}" style="margin-top:15px; margin-bottom: 15px;">
+                <button type="submit">Generate Fixtures</button>
+            </form>
+        {% else %}
+            <p>Fixtures have been generated.</p>
+        {% endif %}
+        
+        {% if fixtures %}
+            <h4>Generated Fixtures:</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Round</th>
+                        <th>Match</th>
+                        <th>Team 1</th>
+                        <th>Team 2</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                        <th>Winner</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for fixture in fixtures %}
+                    <tr>
+                        <td>{{ fixture.round_number }}</td>
+                        <td>{{ fixture.match_number_in_round }}</td>
+                        <td>{{ fixture.team1_name }}</td>
+                        <td>{{ fixture.team2_name if fixture.team2_name else 'BYE' }}</td>
+                        <td>{{ fixture.score1 if fixture.score1 is not none else '-' }} : {{ fixture.score2 if fixture.score2 is not none else '-' }}</td>
+                        <td>{{ fixture.status }}</td>
+                        <td>{{ fixture.winner_name if fixture.winner_name else '-' }}</td>
+                        <td><a href="{{ url_for('match_details', match_id=fixture.id) }}">View/Edit</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% elif fixtures_generated_yet %} 
+            <p>Fixtures generated, but no matches found (e.g. not enough teams, or an issue occurred).</p>
+        {% else %}
+             <p><em>No fixtures generated yet for this tournament.</em></p>
+        {% endif %}
+        {# <p><a href="{{ url_for('generate_fixtures_route', tournament_id=tournament.id) }}">Generate Fixtures</a></p> #}
+
+        <hr style="margin-top: 30px; margin-bottom: 30px;">
+
+        <h3>Manage Teams</h3>
+        <form method="POST" action="{{ url_for('add_team', tournament_id=tournament.id) }}" style="max-width: 400px; margin-left:0; margin-bottom: 20px;">
+            <div>
+                <label for="team_name">Team Name:</label>
+                <input type="text" id="team_name" name="team_name" required>
+            </div>
+            <div>
+                <button type="submit">Add Team</button>
+            </div>
+        </form>
+
+        <h4>Current Teams:</h4>
+        {% if teams %} {# Will be updated to 'teams' variable later #}
+            <ul>
+            {% for team in teams %} {# Will be updated to 'team' variable later #}
+                <li>{{ team.name }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>No teams added yet for this tournament.</p>
+        {% endif %}
+
+    {% else %}
+        <p>Tournament details could not be loaded. It may have been deleted or an error occurred.</p>
+    {% endif %}
+    
+    <p style="margin-top: 20px;"><a href="{{ url_for('index') }}">Back to Dashboard</a></p>
+</body>
+</html>
+

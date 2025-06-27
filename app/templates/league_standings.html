@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>League Standings - {{ tournament.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h1>League Standings: {{ tournament.name }}</h1>
+
+    {% if standings %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Team Name</th>
+                    <th>MP</th>
+                    <th>W</th>
+                    <th>D</th>
+                    <th>L</th>
+                    <th>GF</th>
+                    <th>GA</th>
+                    <th>GD</th>
+                    <th>Pts</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for team_stats in standings %}
+                <tr>
+                    <td>{{ loop.index }}</td> {# Rank based on sorted order #}
+                    <td>{{ team_stats.name }}</td>
+                    <td>{{ team_stats.mp }}</td>
+                    <td>{{ team_stats.w }}</td>
+                    <td>{{ team_stats.d }}</td>
+                    <td>{{ team_stats.l }}</td>
+                    <td>{{ team_stats.gf }}</td>
+                    <td>{{ team_stats.ga }}</td>
+                    <td>{{ team_stats.gd }}</td>
+                    <td><strong>{{ team_stats.pts }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No standings to display. This could be because no teams have been added, no matches have been completed, or the tournament is not a league format.</p>
+    {% endif %}
+
+    <p style="margin-top: 20px;">
+        <a href="{{ url_for('view_tournament', tournament_id=tournament.id) }}">Back to Tournament View</a> |
+        <a href="{{ url_for('index') }}">Back to Dashboard</a>
+    </p>
+
+</body>
+</html>
+

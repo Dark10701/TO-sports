@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create New Tournament</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Create New Tournament</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('create_tournament') }}">
+        <div>
+            <label for="name">Tournament Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div>
+            <label for="sport">Sport:</label>
+            <input type="text" id="sport" name="sport" required>
+        </div>
+        <div>
+            <label for="format">Format:</label>
+            <select id="format" name="format" required>
+                <option value="" disabled selected>Select format...</option>
+                <option value="league">League</option>
+                <option value="knockout">Knockout</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit">Create Tournament</button>
+        </div>
+    </form>
+    <p style="text-align: center; margin-top: 20px;"><a href="{{ url_for('index') }}">Back to Home</a></p>
+</body>
+</html>
+
+
